@@ -1,0 +1,397 @@
+import { useState } from "react";
+
+const topics = [
+  {
+    id: 1, emoji: "🏗️", title: "Software Architecture", color: "#e8a838",
+    sections: [{
+      heading: "What is Software Architecture?",
+      content: `Software Architecture is the **high-level structure** of a software system — the set of rules, patterns, and guidelines that dictate how components are organized and interact.\n\nThink of it like the **blueprint of a building** — before any bricks are laid, the architect defines the structure.`,
+      memory: "🧠 Mnemonic: **MESSP** — Modularity, Encapsulation, Security, Documentation, Performance",
+      points: [
+        "**Modularity** – Divides system into independent, interchangeable components",
+        "**Encapsulation** – Hides internal details; reduces complexity",
+        "**Security** – Protects against unauthorized access",
+        "**Documentation** – Provides clear system understanding",
+        "**Performance** – Ensures throughput & resource utilization goals",
+      ],
+    }],
+  },
+  {
+    id: 2, emoji: "📚", title: "Layered Architecture", color: "#3b82f6",
+    sections: [
+      {
+        heading: "What is it?",
+        content: `Components separated into **stacked layers**, each with a unique task. Layers are independent — change one without affecting others.\n\nThe **most commonly used** pattern for software.`,
+        memory: "🧠 Top to bottom: **P-B-A-D** → Presentation → Business → Application → Data",
+        points: [
+          "**Presentation Layer** – What the user sees (UI)",
+          "**Business Layer** – Executes business logic per request",
+          "**Application Layer** – Bridges Presentation and Data",
+          "**Data Layer** – Database; manages persistent data",
+        ],
+      },
+      {
+        heading: "Pros & Cons",
+        pros: ["Scalability – each layer scales independently", "Flexibility – different tech per layer", "Maintainability – isolated changes"],
+        cons: ["Complexity – more layers = harder to manage", "Performance Overhead – extra inter-layer communication", "Strict separation can cause inefficiencies"],
+      },
+      {
+        heading: "Use Cases",
+        content: "CRM systems, E-commerce platforms, Financial desktop apps, Banking mobile apps, WordPress (CMS)",
+        memory: "🧠 **C-E-F-B-W** → CRM, E-commerce, Finance, Banking, WordPress",
+      },
+    ],
+  },
+  {
+    id: 3, emoji: "🖥️", title: "Client-Server Architecture", color: "#10b981",
+    sections: [
+      {
+        heading: "What is it?",
+        content: `Two entities: **Server** (holds resources) + **multiple Clients** (request resources).\n\nFlow: Client → Server processes → Server responds.`,
+        memory: "🧠 Think **restaurant**: Clients = customers, Server = kitchen, Resources = food.",
+        points: [
+          "Server holds: data, files, or services",
+          "Centralized resource & security management",
+          "Clients request; server processes and responds",
+        ],
+      },
+      {
+        heading: "Pros & Cons",
+        pros: ["Centralized Management – easy security & backups", "Scalability – servers can be scaled up", "Security – access controls & data encryption"],
+        cons: ["Single Point of Failure – server dies, all clients lose access", "Costly – hardware + software + admin expenses", "Complexity – design and management is hard"],
+      },
+      {
+        heading: "Use Cases",
+        content: "Amazon, Gmail/Outlook, Dropbox/Google Drive, Netflix, Moodle",
+        memory: "🧠 **A-G-D-N-M** → Amazon, Gmail, Dropbox, Netflix, Moodle",
+      },
+    ],
+  },
+  {
+    id: 4, emoji: "📡", title: "Publish-Subscribe (Pub-Sub)", color: "#8b5cf6",
+    sections: [
+      {
+        heading: "What is it?",
+        content: `Publisher and Subscriber are **completely decoupled** — they don't know each other. Communication via a **Message Broker / Event Bus**.\n\n- **Publisher** – Groups messages into topics/channels\n- **Subscriber** – Listens to topics of interest\n- **Broker** – Routes messages to the right subscribers`,
+        memory: "🧠 Think **YouTube**: Creator (Publisher) uploads once. YouTube (Broker) notifies all Subscribers. You don't need to keep checking.",
+      },
+      {
+        heading: "Advantages",
+        pros: [
+          "Extreme Decoupling – publishers & subscribers can be in different languages/servers",
+          "High Scalability – add thousands of subscribers without changing publisher code",
+          "Improved Responsiveness – asynchronous; publisher fires and moves on",
+          "Reliability – broker holds messages if subscriber is temporarily offline",
+        ],
+      },
+      {
+        heading: "Case Studies",
+        content: `**Uber (GPS)**: Driver app (Publisher) → Broker → Rider's App + Analytics + Billing Service\n\n**Instagram/Twitter**: You post (Publisher) → Broker → all followers' feeds (Subscribers)`,
+        memory: "🧠 Publisher sends ONE message → Broker → multiple subscribers. No direct connection needed.",
+      },
+    ],
+  },
+  {
+    id: 5, emoji: "🗃️", title: "Repository Architecture", color: "#f43f5e",
+    sections: [
+      {
+        heading: "What is it?",
+        content: `Centers around a **central data store** shared by all independent components. Components don't talk to each other — only to the repository.\n\n**Active (Blackboard)**: Repo notifies components on change (data-driven)\n**Passive**: Components must poll/check the repo (component-driven)`,
+        memory: "🧠 Think **whiteboard in class**: Everyone reads/writes the same board. Nobody whispers — they just check the board.",
+      },
+      {
+        heading: "Pros & Cons",
+        pros: ["Data Integrity – single source of truth; no stale data", "Low Coupling – components completely independent", "Efficiency – no massive file passing between services"],
+        cons: ["Single Point of Failure – repo fails, system stops", "Performance Bottleneck – concurrent access can slow things", "Data Evolution – schema change forces updates to ALL components"],
+      },
+      {
+        heading: "Case Studies",
+        content: `**IDEs** (VS Code/Eclipse): Repo = Abstract Syntax Tree. Components = Compiler, Debugger, Syntax Highlighter — all read same tree.\n\n**Banking**: Repo = Central Ledger. Components = ATM, Mobile App, Interest Calculator, Fraud Detection.`,
+      },
+    ],
+  },
+  {
+    id: 6, emoji: "🔌", title: "Component & Connector (C&C)", color: "#f97316",
+    sections: [
+      {
+        heading: "What is it?",
+        content: `Describes **runtime behavior** — how the system executes and communicates (not how code sits on disk).\n\n- **Components** – Computational units that do work (web server, database, mobile client). Interact via **Ports**.\n- **Connectors** – Pathways between components (REST API, SQL, message bus). Attach via **Roles**.`,
+        memory: "🧠 Components = **electrical devices**. Connectors = **power cables**. Ports = **plug sockets** on the device.",
+      },
+      {
+        heading: "Web App Case Study",
+        content: `**Components**: Browser Client, Web Server (Node.js/Django), Database (PostgreSQL)\n\n**Connectors**:\n- HTTPS → Browser ↔ Web Server (synchronous)\n- JDBC/ODBC → Web Server ↔ Database (SQL queries)`,
+        memory: "🧠 Port = socket ON component. Connector = cable BETWEEN two ports.",
+      },
+    ],
+  },
+  {
+    id: 7, emoji: "⚙️", title: "Functional Independence", color: "#06b6d4",
+    sections: [{
+      heading: "What is it?",
+      content: `Modules with **single-minded function** and minimal interaction with other modules.\n\nGoal: each module does ONE thing and knows as little as possible about others.\nMeasured by **Cohesion** (internal) and **Coupling** (external).`,
+      memory: "🧠 Think **specialist doctor**: A cardiologist only treats hearts. Doesn't fix bones or manage billing. That focused expertise = functional independence.",
+      points: [
+        "Easier to develop",
+        "Easier to test and maintain",
+        "Reduced error propagation",
+        "Modules become reusable",
+      ],
+    }],
+  },
+  {
+    id: 8, emoji: "🔗", title: "Coupling (External)", color: "#dc2626",
+    sections: [
+      {
+        heading: "What is Coupling?",
+        content: `Measures **degree of interdependence between different modules**.\n\n**GOAL: Low Coupling** — modules should be as independent as possible.`,
+        memory: "🧠 Low coupling = **strangers** who nod politely. High coupling = **Siamese twins** — if one moves, both must move.",
+      },
+      {
+        heading: "Levels: Best → Worst",
+        points: [
+          "**No Coupling (Best)** – Completely independent, no interaction",
+          "**Data Coupling** – Communicate via simple parameters (pass an integer). ✅ Goal of good design.",
+          "**Stamp Coupling** – Share a complex structure but only use part of it",
+          "**Control Coupling** – One module passes a 'flag' to control another's logic",
+          "**Common/Global Coupling** – Share global variables. ⚠️ Change one, break others.",
+          "**Content Coupling (Worst)** – One module modifies another's internals directly. ❌",
+        ],
+        memory: "🧠 Best → Worst: **No Data Stamps Control Common Content** (N-D-S-C-C-C)",
+      },
+    ],
+  },
+  {
+    id: 9, emoji: "🧩", title: "Cohesion (Internal)", color: "#16a34a",
+    sections: [
+      {
+        heading: "What is Cohesion?",
+        content: `Measures **how closely related elements inside a single module are**.\n\n**GOAL: High Cohesion** — every function in the module truly belongs there.`,
+        memory: "🧠 High cohesion = **specialized toolbox** (only plumbing tools). Low cohesion = **junk drawer** (random stuff).",
+      },
+      {
+        heading: "Levels: Best → Worst",
+        points: [
+          "**Functional (Best)** – Does exactly ONE thing (e.g., calculate_tax()). ✅",
+          "**Sequential** – Output of one step is input to next (assembly line)",
+          "**Communicational** – All functions operate on same input/output data",
+          "**Procedural** – Grouped because they follow a specific sequence",
+          "**Temporal** – Grouped because they run at the same time (e.g., init())",
+          "**Logical** – Grouped because they do logically similar things",
+          "**Coincidental (Worst)** – Grouped randomly, no real relationship. ❌",
+        ],
+        memory: "🧠 Best → Worst: **F-S-C-P-T-L-C** → 'Functional Systems Communicate Properly; Temporal Logic is Coincidental'",
+      },
+    ],
+  },
+  {
+    id: 10, emoji: "🏆", title: "The Golden Rule", color: "#ca8a04",
+    sections: [
+      {
+        heading: "High Cohesion + Low Coupling = Good Design",
+        content: `This is the **fundamental principle** of high-quality software.\n\n**High Cohesion** → if a requirement changes, only ONE module needs updating.\n\n**Low Coupling** → a change in one module does NOT cause ripple-effect bugs.`,
+        memory: "🧠 Good team: each player is highly skilled at ONE role (cohesion). Teams work independently — changing one team's strategy doesn't force others to change (low coupling).",
+      },
+      {
+        heading: "Quick Diagnosis",
+        points: [
+          "❌ Math module has Add(), Subtract(), AND UpdateUI() → **Low Cohesion** — UI doesn't belong in Math",
+          "❌ Login module directly changes variable inside Database module → **High Coupling** — DB changes break Login",
+          "✅ calculateTax(income) → returns tax value → **High Cohesion + Low Coupling** — perfect!",
+        ],
+      },
+    ],
+  },
+];
+
+const flashcards = [
+  { q: "What is Software Architecture?", a: "High-level structure of a software system — rules, patterns & guidelines for how components are organized and interact." },
+  { q: "Name the 4 layers in Layered Architecture (top to bottom)", a: "Presentation → Business → Application → Data (P-B-A-D)" },
+  { q: "What connects Publisher & Subscriber in Pub-Sub?", a: "Message Broker / Event Bus — a third-party routing intermediary." },
+  { q: "Active vs Passive Repository?", a: "Active (Blackboard): repo notifies components. Passive: components must manually poll the repo." },
+  { q: "What is a Port in C&C?", a: "The interaction point ON a component — like a socket where a connector attaches." },
+  { q: "What is a Connector in C&C?", a: "The interaction pathway between components (e.g., REST API, SQL connection, message bus)." },
+  { q: "Best & worst Coupling types?", a: "Best: No Coupling (Data Coupling in practice). Worst: Content Coupling." },
+  { q: "Best & worst Cohesion types?", a: "Best: Functional Cohesion. Worst: Coincidental Cohesion." },
+  { q: "The Golden Rule of software design?", a: "High Cohesion + Low Coupling" },
+  { q: "Biggest weakness of Repository Architecture?", a: "Single Point of Failure — if central store fails, entire system stops." },
+  { q: "Why Pub-Sub scales better than Client-Server?", a: "Asynchronous & decoupled — no constant connections; broker holds messages; add subscribers without changing publisher." },
+  { q: "What does Functional Independence mean?", a: "Modules have a single-minded function and minimal interaction with other modules — measured by Cohesion & Coupling." },
+  { q: "Control Coupling definition?", a: "One module passes a flag/control info to another to dictate its internal logic/execution path." },
+  { q: "Temporal Cohesion definition?", a: "Elements grouped because they execute at the same time (e.g., an initialization function setting up unrelated variables)." },
+];
+
+const bold = (text) => text.split(/(\*\*[^*]+\*\*)/g).map((p, i) =>
+  p.startsWith("**") && p.endsWith("**")
+    ? <strong key={i} style={{ color: "#fbbf24" }}>{p.slice(2, -2)}</strong>
+    : <span key={i}>{p}</span>
+);
+
+function Flashcards() {
+  const [flipped, setFlipped] = useState({});
+  const [done, setDone] = useState({});
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.2rem" }}>
+        <div>
+          <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.4rem", color: "#f1f5f9" }}>⚡ Flashcards</h2>
+          <p style={{ color: "#475569", fontSize: "0.8rem", marginTop: "3px" }}>Tap to reveal · Mark done to track progress</p>
+        </div>
+        <span style={{ color: "#4ade80", fontSize: "0.82rem", fontWeight: 700 }}>
+          {Object.values(done).filter(Boolean).length}/{flashcards.length} done
+        </span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(255px,1fr))", gap: "0.8rem" }}>
+        {flashcards.map((c, i) => (
+          <div key={i} style={{
+            background: done[i] ? "#051a10" : flipped[i] ? "#0d1e35" : "#0f172a",
+            border: `1px solid ${done[i] ? "#166534" : flipped[i] ? "#3b82f6" : "#1e293b"}`,
+            borderRadius: "12px", padding: "1rem", cursor: "pointer",
+            transition: "all 0.25s", minHeight: "82px",
+            display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "0.6rem",
+          }}
+            onClick={() => setFlipped(f => ({ ...f, [i]: !f[i] }))}
+          >
+            <p style={{ margin: 0, fontSize: "0.84rem", lineHeight: 1.55, color: flipped[i] ? "#7dd3fc" : "#e2e8f0", fontWeight: flipped[i] ? 400 : 600 }}>
+              {flipped[i] ? `✅ ${c.a}` : `❓ ${c.q}`}
+            </p>
+            {flipped[i] && (
+              <button onClick={e => { e.stopPropagation(); setDone(d => ({ ...d, [i]: !d[i] })); }} style={{
+                alignSelf: "flex-end", background: done[i] ? "#14532d" : "#1e293b",
+                border: `1px solid ${done[i] ? "#4ade80" : "#334155"}`,
+                color: done[i] ? "#4ade80" : "#64748b", fontSize: "0.72rem",
+                padding: "2px 8px", borderRadius: "6px", cursor: "pointer",
+              }}>
+                {done[i] ? "✓ Done" : "Mark done"}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [view, setView] = useState("home");
+  const [active, setActive] = useState(null);
+  const topic = topics.find(t => t.id === active);
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#060d1a", fontFamily: "'Segoe UI', sans-serif", color: "#e2e8f0" }}>
+      <style>{`*{box-sizing:border-box;margin:0;padding:0} ::-webkit-scrollbar{width:5px} ::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px} .tc:hover{transform:translateY(-3px);border-color:#3b82f6!important} .btn:hover{opacity:0.85}`}</style>
+
+      {/* Header */}
+      <div style={{ background: "#0a1525", borderBottom: "1px solid #1e293b", padding: "1rem 1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.7rem", position: "sticky", top: 0, zIndex: 10 }}>
+        <div onClick={() => { setView("home"); setActive(null); }} style={{ cursor: "pointer" }}>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "1.2rem", color: "#f1f5f9" }}>📘 SE Module 2 Study Guide</div>
+          <div style={{ color: "#334155", fontSize: "0.72rem" }}>Software Architecture · Coupling & Cohesion</div>
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          {[["home","📖 Topics"],["flash","⚡ Flashcards"]].map(([v,l]) => (
+            <button key={v} className="btn" onClick={() => { setView(v); setActive(null); }} style={{
+              background: view===v ? "#0f2a4a" : "transparent",
+              border: `1px solid ${view===v ? "#3b82f6" : "#1e293b"}`,
+              color: view===v ? "#60a5fa" : "#475569",
+              padding: "0.38rem 0.85rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600,
+            }}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ maxWidth: "880px", margin: "0 auto", padding: "1.8rem 1.2rem" }}>
+
+        {view === "flash" && <Flashcards />}
+
+        {view === "home" && !active && (
+          <>
+            <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.25rem", color: "#f1f5f9", marginBottom: "0.3rem" }}>All Topics</h2>
+            <p style={{ color: "#334155", fontSize: "0.8rem", marginBottom: "1.4rem" }}>10 topics from both PDFs — click to study</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: "0.8rem" }}>
+              {topics.map(t => (
+                <div key={t.id} className="tc" onClick={() => { setActive(t.id); setView("topic"); }} style={{
+                  background: "#0d1626", border: "1px solid #1e293b", borderLeft: `4px solid ${t.color}`,
+                  borderRadius: "12px", padding: "1rem", cursor: "pointer", transition: "all 0.2s",
+                }}>
+                  <div style={{ fontSize: "1.6rem", marginBottom: "0.35rem" }}>{t.emoji}</div>
+                  <div style={{ color: "#f1f5f9", fontSize: "0.88rem", fontWeight: 700 }}>{t.title}</div>
+                  <div style={{ color: "#334155", fontSize: "0.73rem", marginTop: "3px" }}>{t.sections.length} section{t.sections.length > 1 ? "s" : ""}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {view === "topic" && active && topic && (
+          <div>
+            <button onClick={() => { setView("home"); setActive(null); }} style={{
+              background: "none", border: "none", color: "#475569", cursor: "pointer",
+              fontSize: "0.8rem", marginBottom: "1.4rem", display: "flex", alignItems: "center", gap: "0.3rem",
+            }}
+              onMouseOver={e => e.currentTarget.style.color = "#fbbf24"}
+              onMouseOut={e => e.currentTarget.style.color = "#475569"}
+            >← All Topics</button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1.6rem" }}>
+              <span style={{ fontSize: "1.9rem" }}>{topic.emoji}</span>
+              <h2 style={{ fontFamily: "Georgia, serif", fontSize: "1.5rem", color: "#f8fafc", borderBottom: `3px solid ${topic.color}`, paddingBottom: "3px" }}>
+                {topic.title}
+              </h2>
+            </div>
+
+            {topic.sections.map((s, si) => (
+              <div key={si} style={{ background: "#0d1626", border: "1px solid #1e293b", borderRadius: "14px", padding: "1.3rem", marginBottom: "1rem" }}>
+                <h3 style={{ color: topic.color, fontSize: "0.93rem", fontWeight: 700, marginBottom: "0.85rem" }}>{s.heading}</h3>
+
+                {s.content && (
+                  <div style={{ color: "#cbd5e1", lineHeight: "1.8", marginBottom: "0.9rem", fontSize: "0.88rem", whiteSpace: "pre-line" }}>
+                    {bold(s.content)}
+                  </div>
+                )}
+
+                {s.points && (
+                  <ul style={{ listStyle: "none", padding: 0, marginBottom: s.memory ? "0.9rem" : 0 }}>
+                    {s.points.map((p, pi) => (
+                      <li key={pi} style={{ color: "#cbd5e1", fontSize: "0.86rem", lineHeight: "1.7", padding: "0.38rem 0", borderBottom: "1px solid #1e293b", display: "flex", gap: "0.5rem" }}>
+                        <span style={{ color: topic.color, flexShrink: 0 }}>▸</span>
+                        <span>{bold(p)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {(s.pros || s.cons) && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.7rem", marginBottom: s.memory ? "0.9rem" : 0 }}>
+                    {s.pros && <div>
+                      <p style={{ color: "#4ade80", fontSize: "0.72rem", fontWeight: 700, marginBottom: "0.45rem", letterSpacing: "0.05em" }}>✅ ADVANTAGES</p>
+                      {s.pros.map((p,pi) => <div key={pi} style={{ background: "#031a0e", border: "1px solid #14532d", borderRadius: "7px", padding: "0.4rem 0.65rem", marginBottom: "0.3rem", color: "#86efac", fontSize: "0.78rem", lineHeight: 1.5 }}>{bold(p)}</div>)}
+                    </div>}
+                    {s.cons && <div>
+                      <p style={{ color: "#f87171", fontSize: "0.72rem", fontWeight: 700, marginBottom: "0.45rem", letterSpacing: "0.05em" }}>❌ DISADVANTAGES</p>
+                      {s.cons.map((c,ci) => <div key={ci} style={{ background: "#1a0505", border: "1px solid #7f1d1d", borderRadius: "7px", padding: "0.4rem 0.65rem", marginBottom: "0.3rem", color: "#fca5a5", fontSize: "0.78rem", lineHeight: 1.5 }}>{bold(c)}</div>)}
+                    </div>}
+                  </div>
+                )}
+
+                {s.memory && (
+                  <div style={{ background: "#130e00", border: "1px solid #713f12", borderRadius: "9px", padding: "0.75rem 0.9rem", marginTop: "0.4rem" }}>
+                    <p style={{ color: "#fcd34d", fontSize: "0.82rem", lineHeight: 1.6, margin: 0 }}>{bold(s.memory)}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1.3rem" }}>
+              {active > 1
+                ? <button onClick={() => setActive(active-1)} style={{ background: "#0d1626", border: "1px solid #1e293b", color: "#475569", padding: "0.5rem 1rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem" }}>← Prev</button>
+                : <span/>}
+              {active < topics.length
+                ? <button onClick={() => setActive(active+1)} style={{ background: topic.color, border: "none", color: "#050a12", padding: "0.5rem 1.1rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.82rem", fontWeight: 700 }}>Next Topic →</button>
+                : <button onClick={() => { setView("flash"); setActive(null); }} style={{ background: "#4f46e5", border: "none", color: "#fff", padding: "0.5rem 1.1rem", borderRadius: "8px", cursor: "pointer", fontSize: "0.82rem", fontWeight: 700 }}>⚡ Test Yourself →</button>}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
